@@ -60,3 +60,23 @@ Ride available -> notification with info about booked taxi containing:
 ## TODO
 - Gherkin BDD cycle - user stories and acceptance tests
 - TDD cycle - unit tests and logic verificaton, assertions.
+
+
+_______
+
+#### Execution plan
+0. Fill database with locations
+  - Can either make it so users fill in distance
+  - Or we calculate the distance using some formula
+
+1. Create login page tests
+  - Page generation
+  - Login for customer
+  - Login for taxi driver
+
+2. Booking page tests
+  - Page generation
+  - Booking only accessible as a customer
+  - Booking confirmation on user booking
+    - Show confirmation message and show estimated time for arrival
+  - Booking rejection on no free taxis

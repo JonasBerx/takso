@@ -1,0 +1,8 @@
+<%# <%= form_for @conn, Routes.page_path(@conn, :login), fn _booking -> %>
+<h1>Login</h1>
+<label for="username">Username</label>
+<input id="username">
+<label for="password">Password</label>
+<input id="password">
+<button id="submit_button">Submit</button>
+<%# <% end %>
