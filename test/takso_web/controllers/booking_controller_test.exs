@@ -15,7 +15,7 @@ defmodule Takso.BookingControllerTest do
     assert html_response(conn, 200) =~ ~r/At present, there is no taxi available!/
   end
 
-  test "Booking aceptance", %{conn: conn} do
+  test "Booking acceptance", %{conn: conn} do
     Repo.insert!(%Taxi{status: "available"})
 
     conn =
