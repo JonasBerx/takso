@@ -46,6 +46,7 @@ defmodule TaksoWeb.UserController do
     render(conn, "show.html", user: user)
   end
 
+  @spec delete(Plug.Conn.t(), map) :: Plug.Conn.t()
   def delete(conn, %{"id" => id}) do
     user = Repo.get!(User, id)
     Repo.delete!(user)

@@ -12,15 +12,21 @@
   </div>
 
   <div class="form-group">
-    <%= label user, :username, class: "control-label" %>
-    <%= text_input user, :username, class: "form-control" %>
-    <%= error_tag user, :username %>
+    <%= label user, :email, class: "control-label" %>
+    <%= text_input user, :email, class: "form-control" %>
+    <%= error_tag user, :email %>
   </div>
 
   <div class="form-group">
     <%= label user, :password, class: "control-label" %>
     <%= text_input user, :password, class: "form-control" %>
     <%= error_tag user, :password %>
+  </div>
+
+  <div class="form-group">
+    <%= label user, :age, class: "control-label" %>
+    <%= text_input user, :age, class: "form-control" %>
+    <%= error_tag user, :age %>
   </div>
 
   <div class="form-group">

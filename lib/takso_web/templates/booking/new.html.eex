@@ -1,5 +1,6 @@
-<%= form_for @conn, Routes.booking_path(@conn, :create), fn _booking -> %>
-<input id="pickup_address">
-<input id="dropoff_address">
-<button id="submit_button">Submit</button>
-<% end %>
+<h2>New booking</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: Routes.booking_path(@conn, :create) %>
+
+<span><%= link "Back", to: Routes.booking_path(@conn, :index) %></span>
