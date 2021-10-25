@@ -46,6 +46,9 @@ defmodule WhiteBreadContext do
     {:ok, state}
   end
 
+  then_ ~r/^I should receive a rejection message$/, fn state ->
+    {:ok, state}
+  end
 
   # given_ ~r/^the following taxis are on duty$/, fn state, %{table_data: table} ->
   #   table
