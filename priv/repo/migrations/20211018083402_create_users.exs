@@ -4,8 +4,9 @@ defmodule Takso.Repo.Migrations.CreateUsers do
   def change do
     create table(:users) do
       add :name, :string
-      add :username, :string
+      add :email, :string
       add :password, :string
+      add :age, :integer
 
       timestamps()
     end
