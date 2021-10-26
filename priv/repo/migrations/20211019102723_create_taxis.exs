@@ -12,7 +12,7 @@ defmodule Takso.Repo.Migrations.CreateTaxis do
       add :completed_rides, :integer
       add :price, :float
       add :capacity, :integer
-      timestamps()
+      # timestamps()
     end
   end
 end

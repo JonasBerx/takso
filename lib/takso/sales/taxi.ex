@@ -12,7 +12,7 @@ defmodule Takso.Sales.Taxi do
     field :completed_rides, :integer
     field :price, :float
     field :capacity, :integer
-    timestamps()
+    # timestamps()
   end
 
   def changeset(struct, params \\ %{}) do
@@ -28,16 +28,17 @@ defmodule Takso.Sales.Taxi do
       :price,
       :capacity
     ])
-    |> validate_required([
-      :name,
-      :email,
-      :age,
-      :password,
-      :location,
-      :status,
-      :completed_rides,
-      :price,
-      :capacity
-    ])
+
+    # |> validate_required([
+    #   :name,
+    #   :email,
+    #   :age,
+    #   :password,
+    #   :location,
+    #   :status,
+    #   :completed_rides,
+    #   :price,
+    #   :capacity
+    # ])
   end
 end

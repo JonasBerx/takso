@@ -43,6 +43,10 @@ defmodule TaksoWeb.BookingController do
         end
 
       _ ->
+        changeset = Booking.changeset(%Booking{}, booking_params)
+        changeset = Ecto.Changeset.put_change(changeset, :status, "REJECTED")
+        Repo.insert!(changeset)
+
         conn
         |> put_flash(:info, "At present, there is no taxi available!")
         |> redirect(to: Routes.booking_path(conn, :new))

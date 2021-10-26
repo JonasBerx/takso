@@ -4,11 +4,11 @@ defmodule Takso.BookingControllerTest do
   alias Takso.{Repo, Sales.Taxi}
 
   test "Booking rejection", %{conn: conn} do
-    Repo.insert!(%Taxi{status: "busy"})
+    Repo.insert!(%Taxi{name: "jonas", price: 2.0, status: "available"})
 
     conn =
       post conn, "/bookings", %{
-        booking: [pickup_address: "Liivi 2", dropoff_address: "Lõunakeskus"]
+        booking: [pickup_address: "Liivi 2", dropoff_address: "Lõunakeskus", status: ""]
       }
 
     conn = get(conn, redirected_to(conn))
@@ -16,14 +16,15 @@ defmodule Takso.BookingControllerTest do
   end
 
   test "Booking acceptance", %{conn: conn} do
-    Repo.insert!(%Taxi{status: "available"})
+    Repo.insert!(%Taxi{name: "jonas", price: 2.0, status: "busy"})
+    Repo.insert!(%Taxi{name: "juhan", price: 2.0, status: "available"})
 
     conn =
       post conn, "/bookings", %{
-        booking: [pickup_address: "Liivi 2", dropoff_address: "Lõunakeskus"]
+        booking: [pickup_address: "Liivi 2", dropoff_address: "Lõunakeskus", status: ""]
       }
 
     conn = get(conn, redirected_to(conn))
-    assert html_response(conn, 200) =~ ~r/Your taxi will arrive in \d+ minutes/
+    assert html_response(conn, 200) =~ ~r/Your taxi driver, juhan, will arrive shortly/
   end
 end
