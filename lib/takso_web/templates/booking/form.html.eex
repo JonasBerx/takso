@@ -17,6 +17,12 @@
     <%= error_tag booking, :dropoff_address %>
   </div>
 
+  <div class="form-group">
+    <%= label booking, :distance, class: "control-label" %>
+    <%= text_input booking, :distance, class: "form-control" %>
+    <%= error_tag booking, :distance %>
+  </div>
+
   <div class="form-group" hidden>
     <%= label booking, :status, class: "control-label" %>
     <%= text_input booking, :status, class: "form-control" %>

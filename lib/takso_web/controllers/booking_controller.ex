@@ -3,6 +3,8 @@ defmodule TaksoWeb.BookingController do
 
   import Ecto.Query, only: [from: 2]
   alias Takso.Sales.{Taxi, Booking, Allocation}
+  alias Takso.Accounts.{User}
+
   alias Ecto.{Changeset, Multi}
   alias Takso.{Repo, Sales.Booking}
 
@@ -28,7 +30,8 @@ defmodule TaksoWeb.BookingController do
 
   def create(conn, %{"booking" => booking_params}) do
     user = conn.assigns.current_user
-
+    # TODO check if distance is not negative.
+    # TODO check if pickup and dropoff are not the same
     case user do
       nil ->
         conn
@@ -36,61 +39,85 @@ defmodule TaksoWeb.BookingController do
         |> redirect(to: Routes.session_path(conn, :new))
 
       _ ->
+        mapped =
+          Enum.map(booking_params, fn {key, value} -> {String.to_atom(key), value} end)
+          |> Map.new()
+
         booking_struct =
           Ecto.build_assoc(
             user,
             :bookings,
-            Enum.map(booking_params, fn {key, value} -> {String.to_atom(key), value} end)
+            mapped
           )
+
+        {v, _} = Float.parse(booking_params["distance"])
+        IO.puts(v)
 
         changeset =
           Booking.changeset(booking_struct, %{})
           |> Changeset.put_change(:status, "open")
+          |> Changeset.put_change(:distance, v)
 
-        booking = Repo.insert!(changeset)
-        # Assign taxi with lowest price and lowest amount of rides.\
-        query =
-          from t in Taxi,
-            where: t.status == "available",
-            select: t,
-            order_by: t.price,
-            order_by: t.completed_rides
+        if Map.get(mapped, :pickup_address) === Map.get(mapped, :dropoff_address) do
+          conn
+          |> put_flash(:error, "Pickup and dropoff address cannot be the same.")
+          |> render("new.html", changeset: changeset)
+        else
+          booking = Repo.insert!(changeset)
+          # Assign taxi with lowest price and lowest amount of rides.\
+          query =
+            from t in Taxi,
+              where: t.status == "available",
+              select: t,
+              order_by: [t.price, t.completed_rides]
 
-        assigned_driver = Takso.Repo.all(query)
+          assigned_driver = Takso.Repo.all(query)
 
-        case length(assigned_driver) > 0 do
-          true ->
-            taxi = List.first(assigned_driver)
+          case length(assigned_driver) > 0 do
+            true ->
+              taxi = List.first(assigned_driver)
 
-            Multi.new()
-            |> Multi.insert(
-              :allocation,
-              Allocation.changeset(%Allocation{}, %{status: "accepted"})
-              |> Changeset.put_change(:booking_id, booking.id)
-              |> Changeset.put_change(:taxi_id, taxi.id)
-            )
-            |> Multi.update(
-              :taxi,
-              Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy")
-            )
-            |> Multi.update(
-              :booking,
-              Booking.changeset(booking, %{}) |> Changeset.put_change(:status, "allocated")
-            )
-            |> Repo.transaction()
+              Multi.new()
+              |> Multi.insert(
+                :allocation,
+                Allocation.changeset(%Allocation{}, %{status: "accepted"})
+                |> Changeset.put_change(:booking_id, booking.id)
+                |> Changeset.put_change(:taxi_id, taxi.id)
+              )
+              |> Multi.update(
+                :taxi,
+                Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy")
+              )
+              |> Multi.update(
+                :booking,
+                Booking.changeset(booking, %{})
+                |> Changeset.put_change(:status, "allocated")
+              )
+              |> Repo.transaction()
 
-            conn
-            |> put_flash(:info, "Your taxi will arrive in 5 minutes")
-            |> redirect(to: Routes.booking_path(conn, :index))
+              get_driver = Repo.get!(User, taxi.driver_id)
+              total_price = v * taxi.price
 
-          _ ->
-            Booking.changeset(booking)
-            |> Changeset.put_change(:status, "rejected")
-            |> Repo.update()
+              conn
+              |> put_flash(
+                :info,
+                "Your taxi driver " <>
+                  get_driver.name <>
+                  " will arrive in 5 minutes. The taxi has " <>
+                  Integer.to_string(taxi.capacity) <>
+                  " seats. The total cost of the ride will be " <> Float.to_string(total_price)
+              )
+              |> redirect(to: Routes.booking_path(conn, :index))
 
-            conn
-            |> put_flash(:info, "At present, there is no taxi available!")
-            |> redirect(to: Routes.booking_path(conn, :index))
+            _ ->
+              Booking.changeset(booking)
+              |> Changeset.put_change(:status, "rejected")
+              |> Repo.update()
+
+              conn
+              |> put_flash(:info, "At present, there is no taxi available!")
+              |> redirect(to: Routes.booking_path(conn, :index))
+          end
         end
     end
   end
@@ -118,8 +145,32 @@ defmodule TaksoWeb.BookingController do
     |> redirect(to: Routes.booking_path(conn, :index))
   end
 
+  # select name, pickup_address, dropoff_address, b.status from bookings b
+  # inner join allocations a on b.id = a.booking_id
+  # inner join taxis t on a.taxi_id = t.id
+  # inner join users u on u.id = t.driver_id
+
   def show(conn, %{"id" => id}) do
-    booking = Repo.get!(Booking, id)
-    render(conn, "show.html", booking: booking)
+    query =
+      from b in Booking,
+        join: a in Allocation,
+        on: b.id == a.booking_id,
+        join: t in Taxi,
+        on: t.id == a.taxi_id,
+        join: u in User,
+        on: u.id == t.driver_id,
+        group_by: [
+          t.id,
+          b.pickup_address,
+          b.dropoff_address,
+          t.price,
+          u.name,
+          b.status,
+          b.distance
+        ],
+        where: b.id == ^id,
+        select: {b.pickup_address, b.dropoff_address, t.price, u.name, b.status, b.distance}
+
+    render(conn, "show.html", booking: Repo.all(query))
   end
 end

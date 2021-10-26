@@ -6,6 +6,7 @@ defmodule Takso.Sales.Booking do
     field :pickup_address, :string
     field :dropoff_address, :string
     field :status, :string, default: "open"
+    field :distance, :float, default: 0.1
     belongs_to :user, Takso.Accounts.User
     timestamps()
   end
@@ -13,7 +14,7 @@ defmodule Takso.Sales.Booking do
   @doc false
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pickup_address, :dropoff_address, :status])
+    |> cast(params, [:pickup_address, :dropoff_address, :status, :distance])
     |> validate_required([:pickup_address, :dropoff_address])
   end
 end
