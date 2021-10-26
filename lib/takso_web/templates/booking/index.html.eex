@@ -4,10 +4,8 @@
   <thead>
     <tr>
       <th>Pickup address</th>
-      <th>Dropoff address</th>
+      <th>Drop off address</th>
       <th>Status</th>
-      <th>To who?</th>
-      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -16,11 +14,10 @@
       <td><%= booking.pickup_address %></td>
       <td><%= booking.dropoff_address %></td>
       <td><%= booking.status %></td>
-      <td><%= booking.user_id %></td>
-    <td class="text-right">
+      <td class="text-right">
         <span><%= link "Delete", to: Routes.booking_path(@conn, :delete, booking), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
       </td>
-      </tr>
+    </tr>
 <% end %>
   </tbody>
 </table>

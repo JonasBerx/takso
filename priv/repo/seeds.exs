@@ -15,7 +15,7 @@ alias Takso.{Repo, Sales.Taxi}
     age: 25,
     password: "password",
     location: "Narva mnt 25",
-    status: "available",
+    status: "AVAILABLE",
     completed_rides: 0,
     price: 2.0,
     capacity: 4

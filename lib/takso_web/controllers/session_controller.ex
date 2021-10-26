@@ -10,7 +10,7 @@ defmodule TaksoWeb.SessionController do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome #{email}")
-        |> redirect(to: Routes.booking_path(conn, :new))
+        |> redirect(to: Routes.booking_path(conn, :index))
 
       {:error, _reason, conn} ->
         conn

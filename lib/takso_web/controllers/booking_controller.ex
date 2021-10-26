@@ -2,12 +2,12 @@ defmodule TaksoWeb.BookingController do
   use TaksoWeb, :controller
 
   import Ecto.Query, only: [from: 2]
-  alias Takso.Sales.Taxi
-  alias Takso.Sales.Booking
+  alias Takso.Sales.{Taxi, Booking, Allocation}
+  alias Ecto.{Changeset, Multi}
   alias Takso.{Repo, Sales.Booking}
 
   def index(conn, _params) do
-    bookings = Repo.all(Booking)
+    bookings = Repo.all(from b in Booking, where: b.user_id == ^conn.assigns.current_user.id)
     render(conn, "index.html", bookings: bookings)
   end
 
@@ -26,27 +26,64 @@ defmodule TaksoWeb.BookingController do
         Enum.map(booking_params, fn {key, value} -> {String.to_atom(key), value} end)
       )
 
-    query = from t in Taxi, where: t.status == "available", select: t
-    available_taxis = Takso.Repo.all(query)
+    changeset =
+      Booking.changeset(booking_struct, %{})
+      |> Changeset.put_change(:status, "open")
 
-    case length(available_taxis) > 0 do
-      # Assign taxi with lowest price and lowest amount of rides.
+    booking = Repo.insert!(changeset)
+    # Assign taxi with lowest price and lowest amount of rides.\
+    query =
+      from t in Taxi,
+        where: t.status == "available",
+        select: t,
+        order_by: t.price,
+        order_by: t.completed_rides
+
+    assigned_driver = Takso.Repo.all(query)
+
+    case length(assigned_driver) > 0 do
       true ->
-        booking_struct = %{booking_struct | status: "ACCEPTED"}
-        Repo.insert!(booking_struct)
+        taxi = List.first(assigned_driver)
+
+        Multi.new()
+        |> Multi.insert(
+          :allocation,
+          Allocation.changeset(%Allocation{}, %{status: "accepted"})
+          |> Changeset.put_change(:booking_id, booking.id)
+          |> Changeset.put_change(:taxi_id, taxi.id)
+        )
+        |> Multi.update(:taxi, Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy"))
+        |> Multi.update(
+          :booking,
+          Booking.changeset(booking, %{}) |> Changeset.put_change(:status, "allocated")
+        )
+        |> Repo.transaction()
 
         conn
-        |> put_flash(:info, booking_struct.status)
-        |> redirect(to: Routes.booking_path(conn, :new))
+        |> put_flash(:info, "Your taxi will arrive in 5 minutes")
+        |> redirect(to: Routes.booking_path(conn, :index))
 
       _ ->
-        booking_struct = %{booking_struct | status: "REJECTED"}
-        Repo.insert!(booking_struct)
+        Booking.changeset(booking)
+        |> Changeset.put_change(:status, "rejected")
+        |> Repo.update()
 
         conn
         |> put_flash(:info, "At present, there is no taxi available!")
-        |> redirect(to: Routes.booking_path(conn, :new))
+        |> redirect(to: Routes.booking_path(conn, :index))
     end
+  end
+
+  def summary(conn, _params) do
+    query =
+      from t in Taxi,
+        join: a in Allocation,
+        on: t.id == a.taxi_id,
+        group_by: t.username,
+        where: a.status == "accepted",
+        select: {t.username, count(a.id)}
+
+    render(conn, "summary.html", tuples: Repo.all(query))
   end
 
   def delete(conn, %{"id" => id}) do
@@ -58,40 +95,3 @@ defmodule TaksoWeb.BookingController do
     |> redirect(to: Routes.booking_path(conn, :index))
   end
 end
-
-# def create(conn, %{"booking" => booking_params}) do
-#   query = from t in Taxi, where: t.status == "available", select: t
-#   available_taxis = Takso.Repo.all(query)
-
-#   case length(available_taxis) > 0 do
-#     true ->
-#       changeset = Booking.changeset(%Booking{}, booking_params)
-#       changeset = Ecto.Changeset.put_change(changeset, :status, "ACCEPTED")
-
-#       case Repo.insert(changeset) do
-#         {:ok, _booking} ->
-#           # TODO find cheapest and least driven taxi and assign here.
-#           driver = Enum.filter(available_taxis, fn x -> x.completed_rides == 0 end)
-
-#           output =
-#             "Your taxi driver, " <>
-#               to_string(Enum.at(driver, 0).name) <> ", will arrive shortly."
-
-#           conn
-#           |> put_flash(:info, output)
-#           |> redirect(to: Routes.booking_path(conn, :index))
-
-#         {:error, changeset} ->
-#           render(conn, "new.html", changeset: changeset)
-#       end
-
-#     _ ->
-#       changeset = Booking.changeset(%Booking{}, booking_params)
-#       changeset = Ecto.Changeset.put_change(changeset, :status, "REJECTED")
-#       Repo.insert!(changeset)
-
-#       conn
-#       |> put_flash(:info, "At present, there is no taxi available!")
-#       |> redirect(to: Routes.booking_path(conn, :new))
-#   end
-# end
