@@ -19,7 +19,7 @@ alias Takso.{Repo, Sales.Taxi}
 [
   %{
     location: "Narva mnt 25",
-    status: "AVAILABLE",
+    status: "available",
     completed_rides: 0,
     price: 2.0,
     capacity: 4,

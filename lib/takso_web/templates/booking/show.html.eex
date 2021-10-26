@@ -1,0 +1,21 @@
+<h2>Show booking</h2>
+
+<ul>
+
+  <li>
+    <strong>Pickup address:</strong>
+    <%= @booking.pickup_address %>
+  </li>
+
+  <li>
+    <strong>Dropoff address:</strong>
+    <%= @booking.dropoff_address %>
+  </li>
+
+  <li>
+    <strong>Status:</strong>
+    <%= @booking.status %>
+  </li>
+
+</ul>
+<span><%= link "Back", to: Routes.booking_path(@conn, :index) %></span>

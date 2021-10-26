@@ -100,9 +100,11 @@ defmodule TaksoWeb.BookingController do
       from t in Taxi,
         join: a in Allocation,
         on: t.id == a.taxi_id,
-        group_by: t.email,
+        join: u in Takso.Accounts.User,
+        on: t.id == u.id,
+        group_by: t.id,
         where: a.status == "accepted",
-        select: {t.email, count(a.id)}
+        select: {t.id, count(a.id)}
 
     render(conn, "summary.html", tuples: Repo.all(query))
   end
@@ -114,5 +116,10 @@ defmodule TaksoWeb.BookingController do
     conn
     |> put_flash(:info, "Booking deleted successfully.")
     |> redirect(to: Routes.booking_path(conn, :index))
+  end
+
+  def show(conn, %{"id" => id}) do
+    booking = Repo.get!(Booking, id)
+    render(conn, "show.html", booking: booking)
   end
 end
