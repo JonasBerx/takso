@@ -7,8 +7,18 @@ defmodule TaksoWeb.BookingController do
   alias Takso.{Repo, Sales.Booking}
 
   def index(conn, _params) do
-    bookings = Repo.all(from b in Booking, where: b.user_id == ^conn.assigns.current_user.id)
-    render(conn, "index.html", bookings: bookings)
+    user = conn.assigns.current_user
+
+    case user do
+      nil ->
+        conn
+        |> put_flash(:error, "You are not logged in. Please log in")
+        |> redirect(to: Routes.session_path(conn, :new))
+
+      _ ->
+        bookings = Repo.all(from b in Booking, where: b.user_id == ^conn.assigns.current_user.id)
+        render(conn, "index.html", bookings: bookings)
+    end
   end
 
   def new(conn, _params) do
@@ -19,58 +29,69 @@ defmodule TaksoWeb.BookingController do
   def create(conn, %{"booking" => booking_params}) do
     user = conn.assigns.current_user
 
-    booking_struct =
-      Ecto.build_assoc(
-        user,
-        :bookings,
-        Enum.map(booking_params, fn {key, value} -> {String.to_atom(key), value} end)
-      )
-
-    changeset =
-      Booking.changeset(booking_struct, %{})
-      |> Changeset.put_change(:status, "open")
-
-    booking = Repo.insert!(changeset)
-    # Assign taxi with lowest price and lowest amount of rides.\
-    query =
-      from t in Taxi,
-        where: t.status == "available",
-        select: t,
-        order_by: t.price,
-        order_by: t.completed_rides
-
-    assigned_driver = Takso.Repo.all(query)
-
-    case length(assigned_driver) > 0 do
-      true ->
-        taxi = List.first(assigned_driver)
-
-        Multi.new()
-        |> Multi.insert(
-          :allocation,
-          Allocation.changeset(%Allocation{}, %{status: "accepted"})
-          |> Changeset.put_change(:booking_id, booking.id)
-          |> Changeset.put_change(:taxi_id, taxi.id)
-        )
-        |> Multi.update(:taxi, Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy"))
-        |> Multi.update(
-          :booking,
-          Booking.changeset(booking, %{}) |> Changeset.put_change(:status, "allocated")
-        )
-        |> Repo.transaction()
-
+    case user do
+      nil ->
         conn
-        |> put_flash(:info, "Your taxi will arrive in 5 minutes")
-        |> redirect(to: Routes.booking_path(conn, :index))
+        |> put_flash(:error, "You are not logged in. Please log in")
+        |> redirect(to: Routes.session_path(conn, :new))
 
       _ ->
-        Booking.changeset(booking)
-        |> Changeset.put_change(:status, "rejected")
-        |> Repo.update()
+        booking_struct =
+          Ecto.build_assoc(
+            user,
+            :bookings,
+            Enum.map(booking_params, fn {key, value} -> {String.to_atom(key), value} end)
+          )
 
-        conn
-        |> put_flash(:info, "At present, there is no taxi available!")
-        |> redirect(to: Routes.booking_path(conn, :index))
+        changeset =
+          Booking.changeset(booking_struct, %{})
+          |> Changeset.put_change(:status, "open")
+
+        booking = Repo.insert!(changeset)
+        # Assign taxi with lowest price and lowest amount of rides.\
+        query =
+          from t in Taxi,
+            where: t.status == "available",
+            select: t,
+            order_by: t.price,
+            order_by: t.completed_rides
+
+        assigned_driver = Takso.Repo.all(query)
+
+        case length(assigned_driver) > 0 do
+          true ->
+            taxi = List.first(assigned_driver)
+
+            Multi.new()
+            |> Multi.insert(
+              :allocation,
+              Allocation.changeset(%Allocation{}, %{status: "accepted"})
+              |> Changeset.put_change(:booking_id, booking.id)
+              |> Changeset.put_change(:taxi_id, taxi.id)
+            )
+            |> Multi.update(
+              :taxi,
+              Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy")
+            )
+            |> Multi.update(
+              :booking,
+              Booking.changeset(booking, %{}) |> Changeset.put_change(:status, "allocated")
+            )
+            |> Repo.transaction()
+
+            conn
+            |> put_flash(:info, "Your taxi will arrive in 5 minutes")
+            |> redirect(to: Routes.booking_path(conn, :index))
+
+          _ ->
+            Booking.changeset(booking)
+            |> Changeset.put_change(:status, "rejected")
+            |> Repo.update()
+
+            conn
+            |> put_flash(:info, "At present, there is no taxi available!")
+            |> redirect(to: Routes.booking_path(conn, :index))
+        end
     end
   end
 
@@ -79,9 +100,9 @@ defmodule TaksoWeb.BookingController do
       from t in Taxi,
         join: a in Allocation,
         on: t.id == a.taxi_id,
-        group_by: t.username,
+        group_by: t.email,
         where: a.status == "accepted",
-        select: {t.username, count(a.id)}
+        select: {t.email, count(a.id)}
 
     render(conn, "summary.html", tuples: Repo.all(query))
   end

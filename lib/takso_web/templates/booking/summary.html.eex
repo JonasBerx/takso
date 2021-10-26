@@ -1,0 +1,18 @@
+<h2>Driver statistics</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>driver</th>
+      <th>total</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for {email, count} <- @tuples do %>
+    <tr>
+      <td><%= email %></td>
+      <td><%= count %></td>
+   </tr>
+<% end %>
+  </tbody>
+</table>
