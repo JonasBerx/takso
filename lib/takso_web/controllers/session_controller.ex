@@ -22,6 +22,6 @@ defmodule TaksoWeb.SessionController do
   def delete(conn, _params) do
     conn
     |> Takso.Authentication.logout()
-    |> redirect(to: Routes.page_path(conn, :index))
+    |> redirect(to: Routes.session_path(conn, :new))
   end
 end
