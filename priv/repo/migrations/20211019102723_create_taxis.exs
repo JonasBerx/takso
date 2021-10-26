@@ -3,15 +3,12 @@ defmodule Takso.Repo.Migrations.CreateTaxis do
 
   def change do
     create table(:taxis) do
-      add :name, :string
-      add :email, :string
-      add :age, :integer
-      add :password, :string
       add :location, :string
       add :status, :string
       add :completed_rides, :integer
       add :price, :float
       add :capacity, :integer
+      add :driver_id, references(:users)
       # timestamps()
     end
   end

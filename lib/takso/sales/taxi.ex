@@ -3,25 +3,19 @@ defmodule Takso.Sales.Taxi do
   import Ecto.Changeset
 
   schema "taxis" do
-    field :name, :string
-    field :email, :string
-    field :age, :integer
-    field :password, :string
     field :location, :string
     field :status, :string
     field :completed_rides, :integer
     field :price, :float
     field :capacity, :integer
+    belongs_to :driver, Takso.Accounts.User
     # timestamps()
   end
 
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [
-      :name,
-      :email,
-      :age,
-      :password,
+      :driver_id,
       :location,
       :status,
       :completed_rides,
