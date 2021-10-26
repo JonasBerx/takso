@@ -16,14 +16,30 @@ defmodule TaksoWeb.UserController do
   def create(conn, %{"user" => user_params}) do
     changeset = User.changeset(%User{}, user_params)
 
-    case Repo.insert(changeset) do
-      {:ok, user} ->
-        conn
-        |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.user_path(conn, :index))
+    mapped =
+      Enum.map(user_params, fn {key, value} -> {String.to_atom(key), value} end)
+      |> Map.new()
 
-      {:error, changeset} ->
-        render(conn, "new.html", changeset: changeset)
+    if Integer.to_string(18) > Map.get(mapped, :age) do
+      conn
+      |> put_flash(:error, "You are underage.")
+      |> render("new.html", changeset: changeset)
+    else
+      if Takso.Repo.get_by(Takso.Accounts.User, email: Map.get(mapped, :email)) do
+        conn
+        |> put_flash(:error, "Email is already in use.")
+        |> render("new.html", changeset: changeset)
+      else
+        case Repo.insert(changeset) do
+          {:ok, user} ->
+            conn
+            |> put_flash(:info, "User created successfully.")
+            |> redirect(to: Routes.user_path(conn, :index))
+
+          {:error, changeset} ->
+            render(conn, "new.html", changeset: changeset)
+        end
+      end
     end
   end
 
