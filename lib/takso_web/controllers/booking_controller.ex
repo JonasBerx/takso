@@ -58,65 +58,80 @@ defmodule TaksoWeb.BookingController do
           |> Changeset.put_change(:status, "open")
           |> Changeset.put_change(:distance, v)
 
-        if Map.get(mapped, :pickup_address) === Map.get(mapped, :dropoff_address) do
+        if Map.get(mapped, :pickup_address) === "" || Map.get(mapped, :dropoff_address) === "" do
           conn
-          |> put_flash(:error, "Pickup and dropoff address cannot be the same.")
+          |> put_flash(:error, "Pickup and dropoff address can't be empty")
           |> render("new.html", changeset: changeset)
         else
-          booking = Repo.insert!(changeset)
-          # Assign taxi with lowest price and lowest amount of rides.\
-          query =
-            from t in Taxi,
-              where: t.status == "available",
-              select: t,
-              order_by: [t.price, t.completed_rides]
-
-          assigned_driver = Takso.Repo.all(query)
-
-          case length(assigned_driver) > 0 do
-            true ->
-              taxi = List.first(assigned_driver)
-
-              Multi.new()
-              |> Multi.insert(
-                :allocation,
-                Allocation.changeset(%Allocation{}, %{status: "accepted"})
-                |> Changeset.put_change(:booking_id, booking.id)
-                |> Changeset.put_change(:taxi_id, taxi.id)
-              )
-              |> Multi.update(
-                :taxi,
-                Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy")
-              )
-              |> Multi.update(
-                :booking,
-                Booking.changeset(booking, %{})
-                |> Changeset.put_change(:status, "allocated")
-              )
-              |> Repo.transaction()
-
-              get_driver = Repo.get!(User, taxi.driver_id)
-              total_price = v * taxi.price
-
+          if v <= 0.0 do
+            conn
+            |> put_flash(:error, "Distance cannot be negative or zero")
+            |> render("new.html", changeset: changeset)
+          else
+            if Map.get(mapped, :pickup_address) === Map.get(mapped, :dropoff_address) do
               conn
-              |> put_flash(
-                :info,
-                "Your taxi driver " <>
-                  get_driver.name <>
-                  " will arrive in 5 minutes. The taxi has " <>
-                  Integer.to_string(taxi.capacity) <>
-                  " seats. The total cost of the ride will be " <> Float.to_string(total_price)
-              )
-              |> redirect(to: Routes.booking_path(conn, :index))
+              |> put_flash(:error, "Pickup and dropoff address can't be the same")
+              |> render("new.html", changeset: changeset)
+            else
+              booking = Repo.insert!(changeset)
+              # Assign taxi with lowest price and lowest amount of rides.\
+              query =
+                from t in Taxi,
+                  where: t.status == "available",
+                  select: t,
+                  order_by: [t.price, t.completed_rides]
 
-            _ ->
-              Booking.changeset(booking)
-              |> Changeset.put_change(:status, "rejected")
-              |> Repo.update()
+              assigned_driver = Takso.Repo.all(query)
 
-              conn
-              |> put_flash(:info, "At present, there is no taxi available!")
-              |> redirect(to: Routes.booking_path(conn, :index))
+              case length(assigned_driver) > 0 do
+                true ->
+                  taxi = List.first(assigned_driver)
+
+                  Multi.new()
+                  |> Multi.insert(
+                    :allocation,
+                    Allocation.changeset(%Allocation{}, %{status: "accepted"})
+                    |> Changeset.put_change(:booking_id, booking.id)
+                    |> Changeset.put_change(:taxi_id, taxi.id)
+                  )
+                  |> Multi.update(
+                    :taxi,
+                    Taxi.changeset(taxi, %{}) |> Changeset.put_change(:status, "busy")
+                  )
+                  |> Multi.update(
+                    :booking,
+                    Booking.changeset(booking, %{})
+                    |> Changeset.put_change(:status, "allocated")
+                  )
+                  |> Repo.transaction()
+
+                  get_driver = Repo.get!(User, taxi.driver_id)
+                  total_price = v * taxi.price
+
+                  conn
+                  |> put_flash(
+                    :info,
+                    "Your taxi driver " <>
+                      get_driver.name <>
+                      " will arrive soon.\n(Currently at: " <>
+                      taxi.location <>
+                      ")\nThe taxi has " <>
+                      Integer.to_string(taxi.capacity) <>
+                      " seats.\nThe total cost of the ride will be €" <>
+                      Float.to_string(total_price)
+                  )
+                  |> redirect(to: Routes.booking_path(conn, :index))
+
+                _ ->
+                  Booking.changeset(booking)
+                  |> Changeset.put_change(:status, "rejected")
+                  |> Repo.update()
+
+                  conn
+                  |> put_flash(:info, "At present, there is no taxi available!")
+                  |> redirect(to: Routes.booking_path(conn, :index))
+              end
+            end
           end
         end
     end
