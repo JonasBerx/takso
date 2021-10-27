@@ -20,7 +20,9 @@ defmodule TaksoWeb.UserController do
       Enum.map(user_params, fn {key, value} -> {String.to_atom(key), value} end)
       |> Map.new()
 
-    if Integer.to_string(18) > Map.get(mapped, :age) do
+    {v, _} = Integer.parse(user_params["age"])
+
+    if 18 > v do
       conn
       |> put_flash(:error, "You are underage.")
       |> render("new.html", changeset: changeset)
