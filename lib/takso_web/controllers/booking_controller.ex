@@ -49,12 +49,12 @@ defmodule TaksoWeb.BookingController do
   end
 
   def update(conn, %{"id" => id}) do
-    b = Repo.get!(Booking, id)
-
+    # TODO : Need to pass through a form.
+    # Check if user doing the completing of the ride is the assigned driver.
     allocation =
       from b in Booking,
         join: a in Allocation,
-        on: b.id == a.booking_id,
+        on: ^id == a.booking_id,
         join: t in Taxi,
         on: t.id == a.taxi_id,
         select: a
@@ -62,7 +62,7 @@ defmodule TaksoWeb.BookingController do
     taxi =
       from b in Booking,
         join: a in Allocation,
-        on: b.id == a.booking_id,
+        on: ^id == a.booking_id,
         join: t in Taxi,
         on: t.id == a.taxi_id,
         select: t
@@ -213,9 +213,10 @@ defmodule TaksoWeb.BookingController do
         join: a in Allocation,
         on: t.id == a.taxi_id,
         join: u in Takso.Accounts.User,
-        on: t.id == u.id,
+        on: t.driver_id == u.id,
         group_by: t.id,
         where: a.status == "accepted",
+        or_where: a.status == "completed",
         select: {t.id, count(a.id)}
 
     render(conn, "summary.html", tuples: Repo.all(query))
