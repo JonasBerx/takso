@@ -1,6 +1,30 @@
 <h2>Show booking</h2>
 
-<%= for {pickup, dropoff, price, name, status, distance} <- @booking do %>
+<%= if assigns[:rejbooking] do %>
+
+<%= for {pickup, dropoff,status, distance} <- @rejbooking do %>
+  <ul>
+    <li>
+      <strong>Pickup address:</strong>
+      <%= pickup %>
+    </li>
+
+    <li>
+      <strong>Dropoff address:</strong>
+      <%= dropoff %>
+    </li>
+
+    <li>
+      <strong>Status:</strong>
+      <%= status %>
+    </li>
+    <li>
+      <strong>Total distance</strong>
+      <%= distance %> km
+    </li>
+<% end %>
+<% else %>
+<%= for {pickup, dropoff, price, name, status, distance} <- @accbooking do %>
   <ul>
     <li>
       <strong>Pickup address:</strong>
@@ -37,6 +61,9 @@
     </li>
   </ul>
 <% end %>
+<% end %>
+
+
 
 
 <span><%= link "Back", to: Routes.booking_path(@conn, :index) %></span>
