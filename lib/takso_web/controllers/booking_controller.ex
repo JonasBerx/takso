@@ -4,7 +4,7 @@ defmodule TaksoWeb.BookingController do
   import Ecto.Query, only: [from: 2]
   alias Takso.Sales.{Taxi, Booking, Allocation}
   alias Takso.Accounts.{User}
-
+  alias Takso.Sales.Allocation
   alias Ecto.{Changeset, Multi}
   alias Takso.{Repo, Sales.Booking}
 
@@ -18,8 +18,33 @@ defmodule TaksoWeb.BookingController do
         |> redirect(to: Routes.session_path(conn, :new))
 
       _ ->
-        bookings = Repo.all(from b in Booking, where: b.user_id == ^conn.assigns.current_user.id)
-        render(conn, "index.html", bookings: bookings)
+        case user.role do
+          "customer" ->
+            bookings =
+              Repo.all(from b in Booking, where: b.user_id == ^conn.assigns.current_user.id)
+
+            render(conn, "index.html", bookings: bookings)
+
+          _ ->
+            # select * from allocations a
+            # inner join taxis t on a.taxi_id = t.id
+            # inner join users u on u.id = t.driver_id
+            query =
+              from a in Allocation,
+                join: t in Taxi,
+                on: t.id == a.taxi_id,
+                join: u in User,
+                on: u.id == t.driver_id,
+                join: b in Booking,
+                on: a.booking_id == b.id,
+                group_by: [t.id, b.id],
+                where: u.id == ^user.id,
+                select: b
+
+            bookings = Repo.all(query)
+
+            render(conn, "index.html", bookings: bookings)
+        end
     end
   end
 

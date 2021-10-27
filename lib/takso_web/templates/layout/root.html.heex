@@ -12,11 +12,17 @@
   <body>
           <header class="header">
         <ol class="breadcrumb pull-right">
-<%= if @conn.assigns.current_user do %>
-            <li>Hello <%= @conn.assigns.current_user.name %></li>
+<%= if @conn.assigns.current_user && @conn.assigns.current_user.role === "customer" do %>
+            <li>Hello <%= @conn.assigns.current_user.name %>, Enjoy your ride.</li>
             <li><%= link "My bookings", to: Routes.booking_path(@conn, :index) %></li>
             <li><%= link "Log out", to: Routes.session_path(@conn, :delete, @conn.assigns.current_user), method: "delete" %></li>
-<% else %>
+<% end %>
+<%= if @conn.assigns.current_user && @conn.assigns.current_user.role === "driver" do %>
+            <li>Hello <%= @conn.assigns.current_user.name %>, Drive safe!</li>
+            <li><%= link "My bookings", to: Routes.booking_path(@conn, :index) %></li>
+            <li><%= link "Log out", to: Routes.session_path(@conn, :delete, @conn.assigns.current_user), method: "delete" %></li>
+<% end %>
+<%= if !@conn.assigns.current_user do %>
             <li><%= link "Log in", to: Routes.session_path(@conn, :new) %></li>
 <% end %>
         </ol>
