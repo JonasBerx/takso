@@ -37,15 +37,53 @@ defmodule TaksoWeb.BookingController do
                 on: u.id == t.driver_id,
                 join: b in Booking,
                 on: a.booking_id == b.id,
-                group_by: [t.id, b.id],
+                group_by: [t.id, b.id, a.status, b.distance],
                 where: u.id == ^user.id,
-                select: b
+                select: {b.pickup_address, b.dropoff_address, b.distance, b.id, a.status}
 
-            bookings = Repo.all(query)
+            rides = Repo.all(query)
 
-            render(conn, "index.html", bookings: bookings)
+            render(conn, "index.html", rides: rides)
         end
     end
+  end
+
+  def update(conn, %{"id" => id}) do
+    b = Repo.get!(Booking, id)
+
+    allocation =
+      from b in Booking,
+        join: a in Allocation,
+        on: b.id == a.booking_id,
+        join: t in Taxi,
+        on: t.id == a.taxi_id,
+        select: a
+
+    taxi =
+      from b in Booking,
+        join: a in Allocation,
+        on: b.id == a.booking_id,
+        join: t in Taxi,
+        on: t.id == a.taxi_id,
+        select: t
+
+    a = List.first(Repo.all(allocation))
+    t = List.first(Repo.all(taxi))
+
+    Multi.new()
+    |> Multi.update(
+      :allocation,
+      Allocation.changeset(a, %{status: "completed"})
+    )
+    |> Multi.update(
+      :taxi,
+      Taxi.changeset(t, %{}) |> Changeset.put_change(:status, "available")
+    )
+    |> Repo.transaction()
+
+    conn
+    |> put_flash(:info, "Ride completed.")
+    |> redirect(to: Routes.booking_path(conn, :index))
   end
 
   def new(conn, _params) do
@@ -55,8 +93,7 @@ defmodule TaksoWeb.BookingController do
 
   def create(conn, %{"booking" => booking_params}) do
     user = conn.assigns.current_user
-    # TODO check if distance is not negative.
-    # TODO check if pickup and dropoff are not the same
+
     case user do
       nil ->
         conn
@@ -80,7 +117,6 @@ defmodule TaksoWeb.BookingController do
 
         changeset =
           Booking.changeset(booking_struct, %{})
-          |> Changeset.put_change(:status, "open")
           |> Changeset.put_change(:distance, v)
 
         if Map.get(mapped, :pickup_address) === "" || Map.get(mapped, :dropoff_address) === "" do
@@ -115,7 +151,7 @@ defmodule TaksoWeb.BookingController do
                   Multi.new()
                   |> Multi.insert(
                     :allocation,
-                    Allocation.changeset(%Allocation{}, %{status: "accepted"})
+                    Allocation.changeset(%Allocation{}, %{status: "allocated"})
                     |> Changeset.put_change(:booking_id, booking.id)
                     |> Changeset.put_change(:taxi_id, taxi.id)
                   )
@@ -126,7 +162,7 @@ defmodule TaksoWeb.BookingController do
                   |> Multi.update(
                     :booking,
                     Booking.changeset(booking, %{})
-                    |> Changeset.put_change(:status, "allocated")
+                    |> Changeset.put_change(:status, "accepted")
                   )
                   |> Repo.transaction()
 
@@ -149,11 +185,11 @@ defmodule TaksoWeb.BookingController do
 
                 _ ->
                   Multi.new()
-                  |> Multi.insert(
-                    :allocation,
-                    Allocation.changeset(%Allocation{}, %{})
-                    |> Changeset.put_change(:booking_id, booking.id)
-                  )
+                  # |> Multi.insert(
+                  #   :allocation,
+                  #   Allocation.changeset(%Allocation{}, %{})
+                  #   |> Changeset.put_change(:booking_id, booking.id)
+                  # )
                   |> Multi.update(
                     :booking,
                     Booking.changeset(booking, %{})
@@ -200,8 +236,6 @@ defmodule TaksoWeb.BookingController do
   # inner join users u on u.id = t.driver_id
 
   def show(conn, %{"id" => id}) do
-    IO.puts(Repo.get!(Booking, id).status === "rejected")
-
     if Repo.get!(Booking, id).status === "rejected" do
       query_rejected =
         from b in Booking,

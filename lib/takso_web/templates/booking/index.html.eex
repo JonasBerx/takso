@@ -1,26 +1,53 @@
-<h2>Listing bookings</h2>
 
-<table class="table">
+<%= if assigns[:rides] do %>
+<h2>Listing allocated rides</h2>
+  <table class="table">
   <thead>
     <tr>
       <th>Pickup address</th>
       <th>Drop off address</th>
-      <th>Status</th>
+      <th>Distance</th>
+      <th>Allocation</th>
     </tr>
   </thead>
   <tbody>
-<%= for booking <- @bookings do %>
-    <tr>
-      <td><%= booking.pickup_address %></td>
-      <td><%= booking.dropoff_address %></td>
-      <td><%= booking.status %></td>
-      <td class="text-right">
-      <span><%= link "Show", to: Routes.booking_path(@conn, :show, booking), class: "btn btn-default btn-xs" %></span>
-        <span><%= link "Delete", to: Routes.booking_path(@conn, :delete, booking), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
-      </td>
-    </tr>
-<% end %>
+  <%= for {pickup, dropoff, distance, id, allocation} <- @rides do %>
+      <tr>
+        <td><%= pickup %></td>
+        <td><%= dropoff %></td>
+        <td><%= distance %></td>
+        <td><%= allocation %></td>
+        <td class="text-right">
+        <span><%= link "Complete", to: Routes.booking_path(@conn, :update, id), method: :put, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
+        </td>
+      </tr>
+  <% end %>
   </tbody>
 </table>
+<% else %>
+<h2>Listing bookings</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Pickup address</th>
+        <th>Drop off address</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+  <%= for booking <- @bookings do %>
+      <tr>
+        <td><%= booking.pickup_address %></td>
+        <td><%= booking.dropoff_address %></td>
+        <td><%= booking.status %></td>
+        <td class="text-right">
+        <span><%= link "Show", to: Routes.booking_path(@conn, :show, booking), class: "btn btn-default btn-xs" %></span>
+          <span><%= link "Delete", to: Routes.booking_path(@conn, :delete, booking), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
+        </td>
+      </tr>
+  <% end %>
+    </tbody>
+  </table>
 
-<span><%= link "New booking", to: Routes.booking_path(@conn, :new) %></span>
+  <span><%= link "New booking", to: Routes.booking_path(@conn, :new) %></span>
+<% end %>

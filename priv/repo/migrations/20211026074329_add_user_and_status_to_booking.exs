@@ -3,7 +3,7 @@ defmodule Takso.Repo.Migrations.AddUserAndStatusToBooking do
 
   def change do
     alter table(:bookings) do
-      add :status, :string, default: "open"
+      add :status, :string, default: "rejected"
       add :user_id, references(:users)
     end
   end
