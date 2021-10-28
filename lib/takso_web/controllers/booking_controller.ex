@@ -91,7 +91,7 @@ defmodule TaksoWeb.BookingController do
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, %{"booking" => booking_params}) do
+  def create(conn, booking_params) do
     user = conn.assigns.current_user
 
     case user do
@@ -112,12 +112,8 @@ defmodule TaksoWeb.BookingController do
             mapped
           )
 
-        {v, _} = Float.parse(booking_params["distance"])
-        IO.puts(v)
-
-        changeset =
-          Booking.changeset(booking_struct, %{})
-          |> Changeset.put_change(:distance, v)
+        v = booking_params["distance"]
+        changeset = Booking.changeset(booking_struct, %{})
 
         if Map.get(mapped, :pickup_address) === "" || Map.get(mapped, :dropoff_address) === "" do
           conn
@@ -167,7 +163,6 @@ defmodule TaksoWeb.BookingController do
                   |> Repo.transaction()
 
                   get_driver = Repo.get!(User, taxi.driver_id)
-                  total_price = v * taxi.price
 
                   conn
                   |> put_flash(
@@ -178,8 +173,8 @@ defmodule TaksoWeb.BookingController do
                       taxi.location <>
                       ")\nThe taxi has " <>
                       Integer.to_string(taxi.capacity) <>
-                      " seats.\nThe total cost of the ride will be €" <>
-                      Float.to_string(total_price)
+                      " seats.\nThe total price for the ride is €" <>
+                      Float.to_string(v * taxi.price)
                   )
                   |> redirect(to: Routes.booking_path(conn, :index))
 

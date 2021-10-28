@@ -27,7 +27,7 @@ alias Takso.{Repo, Sales.Taxi}
   }
 ]
 |> Enum.map(fn taxi_data -> Taxi.changeset(%Taxi{}, taxi_data) end)
-# |> Enum.each(fn changeset -> Ecto.build_assoc(changeset, :user, %{driver_id: 3}) end)
+# |> Ecto.build_assoc(:user, %{driver_id: 3})
 |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
 
 [
@@ -41,7 +41,7 @@ alias Takso.{Repo, Sales.Taxi}
   }
 ]
 |> Enum.map(fn taxi_data -> Taxi.changeset(%Taxi{}, taxi_data) end)
-# |> Enum.each(fn changeset -> Ecto.build_assoc(changeset, :user, %{driver_id: 4}) end)
+# |> Ecto.build_assoc(:user, %{driver_id: 4})
 |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
 
 # taxi1 = Repo.get(Taxi, 1)
