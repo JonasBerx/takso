@@ -18,10 +18,14 @@ defmodule WhiteBreadContext do
   end
 
   given_ ~r/^John is logged into the system using his credentials$/, fn state ->
+    user = %{name: name, email: email, password: password, role: role}
+    id = Takso.Account.User(user)
+    state = Map.put(state, :id, id)
     {:ok, state}
   end
 
   and_ ~r/^the following taxis are on duty$/, fn state ->
+    state = Map.put(state, :status, available)
     {:ok, state}
   end
 
@@ -39,14 +43,17 @@ defmodule WhiteBreadContext do
   end
 
   when_ ~r/^I submit the booking request$/, fn state ->
+    state = Map.put(state, :status, booking)
     {:ok, state}
   end
 
   then_ ~r/^I should receive a confirmation message$/, fn state ->
+    state = Map.put(state, :status, accepted)
     {:ok, state}
   end
 
   then_ ~r/^I should receive a rejection message$/, fn state ->
+    state = Map.put(state, :status, rejected)
     {:ok, state}
   end
 
