@@ -1,6 +1,8 @@
 defmodule WhiteBreadContext do
   use WhiteBread.Context
   use Hound.Helpers
+  alias Takso.{Repo,Accounts.User, Sales.Booking, Sales.Taxi}
+  alias Takso.Sales.{Taxi, Booking}
 
   feature_starting_state fn  ->
     Application.ensure_all_started(:hound)
@@ -18,8 +20,8 @@ defmodule WhiteBreadContext do
   end
 
   given_ ~r/^John is logged into the system using his credentials$/, fn state ->
-    user = %{name: name, email: email, password: password, role: role}
-    id = Takso.Account.User(user)
+    user = %{name: "John Johnson", email: "john123@ut.ee", password: "1234", role: "costumer", age: "44"}
+    id = user
     state = Map.put(state, :id, id)
     {:ok, state}
   end
@@ -32,7 +34,7 @@ defmodule WhiteBreadContext do
   end
 
   and_ ~r/^I want to go from "(?<pickup_address>[^"]+)" to "(?<dropoff_address>[^"]+)"$/,
-  fn state, %{pickup_address: _pickup_address,dropoff_address: _dropoff_address} ->
+  fn state, %{pickup_address: pickup_address,dropoff_address: dropoff_address} ->
     {:ok, state|> Map.put(:pickup_address, pickup_address) |> Map.put(:dropoff_address, dropoff_address)}
   end
 
@@ -53,12 +55,12 @@ defmodule WhiteBreadContext do
   end
 
   then_ ~r/^I should receive a confirmation message$/, fn state ->
-    state = Map.put(state, :status, accepted)
+    #assert visible_in_page? ~r/Your taxi driver: will arrive in \d+ minutes/
     {:ok, state}
   end
 
   then_ ~r/^I should receive a rejection message$/, fn state ->
-    state = Map.put(state, :status, rejected)
+    assert visible_in_page? ~r/At present, there is no taxi available!/
     {:ok, state}
   end
 
