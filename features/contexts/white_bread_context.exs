@@ -24,26 +24,31 @@ defmodule WhiteBreadContext do
     {:ok, state}
   end
 
-  and_ ~r/^the following taxis are on duty$/, fn state ->
-    state = Map.put(state, :status, available)
+  and_ ~r/^the following taxis are on duty$/, fn state, %{table_data: table} ->
+    table
+    |> Enum.map(fn taxi -> Taxi.changeset(%Taxi{}, taxi) end)
+    |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
     {:ok, state}
   end
 
   and_ ~r/^I want to go from "(?<pickup_address>[^"]+)" to "(?<dropoff_address>[^"]+)"$/,
   fn state, %{pickup_address: _pickup_address,dropoff_address: _dropoff_address} ->
-    {:ok, state}
+    {:ok, state|> Map.put(:pickup_address, pickup_address) |> Map.put(:dropoff_address, dropoff_address)}
   end
 
   and_ ~r/^I open the STRS's web page$/, fn state ->
+    navigate_to "/bookings/new"
     {:ok, state}
   end
 
   and_ ~r/^I enter the booking information$/, fn state ->
+    fill_field({:id, "pickup_address"}, state[:pickup_address])
+    fill_field({:id, "dropoff_address"}, state[:dropoff_address])
     {:ok, state}
   end
 
   when_ ~r/^I submit the booking request$/, fn state ->
-    state = Map.put(state, :status, booking)
+    click({:id, "Submit"})
     {:ok, state}
   end
 
