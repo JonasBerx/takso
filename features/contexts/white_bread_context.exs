@@ -16,20 +16,33 @@ defmodule WhiteBreadContext do
   end
   scenario_finalize fn _status, _state ->
     Ecto.Adapters.SQL.Sandbox.checkin(Takso.Repo)
-    Hound.end_session()
+    #Hound.end_session()
   end
 
-  given_ ~r/^John is logged into the system using his credentials$/, fn state ->
-    user = %{name: "John Johnson", email: "john123@ut.ee", password: "1234", role: "costumer", age: "44"}
-    id = user
+  given_ ~r/^John logs into the system using his credentials$/, fn state ->
+    user = %User{name: "John Johnson", email: "john123@ut.ee", password: "1234", role: "costumer", age: 44, id: 1}
+    Repo.insert!(user)
+    navigate_to "/sessions/new"
+    fill_field({:id, "email"}, user.email)
+    fill_field({:id, "password"}, user.password)
+    click({:id, "submit"})
+    id = user.id
     state = Map.put(state, :id, id)
+    ##add changeset
+    {:ok, state}
+  end
+
+  and_ ~r/^the following taxi drivers are on duty$/, fn state, %{table_data: table} ->
+    table
+    |> Enum.map(fn user -> User.changeset(%User{}, user) end)
+    |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
     {:ok, state}
   end
 
   and_ ~r/^the following taxis are on duty$/, fn state, %{table_data: table} ->
-    table
-    |> Enum.map(fn taxi -> Taxi.changeset(%Taxi{}, taxi) end)
-    |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
+    #table
+    #|> Enum.map(fn taxi -> Taxi.changeset(%Taxi{}, taxi) end)
+    #|> Enum.each(fn changeset -> Repo.insert!(changeset) end)
     {:ok, state}
   end
 
@@ -50,19 +63,19 @@ defmodule WhiteBreadContext do
   end
 
   when_ ~r/^I submit the booking request$/, fn state ->
-    click({:id, "Submit"})
+    click({:id, "submit"})
     {:ok, state}
   end
 
   then_ ~r/^I should receive a confirmation message$/, fn state ->
-    #assert visible_in_page? ~r/Your taxi driver: will arrive in \d+ minutes/
+    assert visible_in_page? ~r/Your taxi driver/
     {:ok, state}
   end
 
-  then_ ~r/^I should receive a rejection message$/, fn state ->
-    assert visible_in_page? ~r/At present, there is no taxi available!/
-    {:ok, state}
-  end
+  # then_ ~r/^I should receive a rejection message$/, fn state ->
+  #   assert visible_in_page? ~r/At present, there is no taxi available!/
+  #   {:ok, state}
+  # end
 
   # given_ ~r/^the following taxis are on duty$/, fn state, %{table_data: table} ->
   #   table
