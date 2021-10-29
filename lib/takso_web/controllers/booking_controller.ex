@@ -165,9 +165,6 @@ defmodule TaksoWeb.BookingController do
                   )
                   |> Repo.transaction()
 
-                  IO.puts("test")
-                  IO.puts(taxi.driver_id)
-                  IO.puts("test")
                   get_driver = Repo.get!(User, taxi.driver_id)
                   total_price = v * taxi.price
 
@@ -234,41 +231,70 @@ defmodule TaksoWeb.BookingController do
   # inner join users u on u.id = t.driver_id
 
   def show(conn, %{"id" => id}) do
-    if Repo.get!(Booking, id).status === "rejected" do
-      query_rejected =
-        from b in Booking,
-          group_by: [
-            b.pickup_address,
-            b.dropoff_address,
-            b.status,
-            b.distance
-          ],
-          where: b.id == ^id,
-          select: {b.pickup_address, b.dropoff_address, b.status, b.distance}
+    user = conn.assigns.current_user
 
-      render(conn, "show.html", rejbooking: Repo.all(query_rejected))
-    else
-      query_allocated =
-        from b in Booking,
-          join: a in Allocation,
-          on: b.id == a.booking_id,
-          join: t in Taxi,
-          on: t.id == a.taxi_id,
-          join: u in User,
-          on: u.id == t.driver_id,
-          group_by: [
-            t.id,
-            b.pickup_address,
-            b.dropoff_address,
-            t.price,
-            u.name,
-            b.status,
-            b.distance
-          ],
-          where: b.id == ^id,
-          select: {b.pickup_address, b.dropoff_address, t.price, u.name, b.status, b.distance}
+    case user.role do
+      "customer" ->
+        if Repo.get!(Booking, id).status === "rejected" do
+          query_rejected =
+            from b in Booking,
+              group_by: [
+                b.pickup_address,
+                b.dropoff_address,
+                b.status,
+                b.distance
+              ],
+              where: b.id == ^id,
+              select: {b.pickup_address, b.dropoff_address, b.status, b.distance}
 
-      render(conn, "show.html", accbooking: Repo.all(query_allocated))
+          render(conn, "show.html", rejbooking: Repo.all(query_rejected))
+        else
+          query_allocated =
+            from b in Booking,
+              join: a in Allocation,
+              on: b.id == a.booking_id,
+              join: t in Taxi,
+              on: t.id == a.taxi_id,
+              join: u in User,
+              on: u.id == t.driver_id,
+              group_by: [
+                t.id,
+                b.pickup_address,
+                b.dropoff_address,
+                t.price,
+                u.name,
+                b.status,
+                b.distance
+              ],
+              where: b.id == ^id,
+              select: {b.pickup_address, b.dropoff_address, t.price, u.name, b.status, b.distance}
+
+          render(conn, "show.html", accbooking: Repo.all(query_allocated))
+        end
+
+      _ ->
+        query_rides =
+          from b in Booking,
+            join: a in Allocation,
+            on: b.id == a.booking_id,
+            join: t in Taxi,
+            on: t.id == a.taxi_id,
+            join: u in User,
+            on: u.id == t.driver_id,
+            group_by: [
+              t.id,
+              b.pickup_address,
+              b.dropoff_address,
+              t.price,
+              u.name,
+              a.status,
+              b.distance,
+              b.id
+            ],
+            where: b.id == ^id,
+            select: {b.pickup_address, b.dropoff_address, b.id, a.status, b.distance}
+
+        render(conn, "show.html", ride: Repo.all(query_rides))
     end
   end
 end

@@ -1,69 +1,96 @@
 <h2>Show booking</h2>
+<%= if assigns[:ride] do %>
+  <%= for {pickup, dropoff, id, status, distance} <- @ride do %>
+    <ul>
+      <li>
+        <strong>Pickup address:</strong>
+        <%= pickup %>
+      </li>
 
-<%= if assigns[:rejbooking] do %>
+      <li>
+        <strong>Dropoff address:</strong>
+        <%= dropoff %>
+      </li>
 
-<%= for {pickup, dropoff,status, distance} <- @rejbooking do %>
-  <ul>
-    <li>
-      <strong>Pickup address:</strong>
-      <%= pickup %>
-    </li>
+      <li>
+        <strong>Status:</strong>
+        <%= status %>
+      </li>
+      <li>
+        <strong>Total distance</strong>
+        <%= distance %> km
+      </li>
+    </ul>
 
-    <li>
-      <strong>Dropoff address:</strong>
-      <%= dropoff %>
-    </li>
-
-    <li>
-      <strong>Status:</strong>
-      <%= status %>
-    </li>
-    <li>
-      <strong>Total distance</strong>
-      <%= distance %> km
-    </li>
-<% end %>
+      <%= if status == "allocated" do %>
+            <span><%= link "Complete?", to: Routes.booking_path(@conn, :update, id), method: :put, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
+      <% end %>
+      <%end %>
 <% else %>
-<%= for {pickup, dropoff, price, name, status, distance} <- @accbooking do %>
-  <ul>
-    <li>
-      <strong>Pickup address:</strong>
-      <%= pickup %>
-    </li>
 
-    <li>
-      <strong>Dropoff address:</strong>
-      <%= dropoff %>
-    </li>
 
-    <li>
-      <strong>Status:</strong>
-      <%= status %>
-    </li>
+  <%= if assigns[:rejbooking] do %>
 
-    <li>
-      <strong>Assigned driver:</strong>
-      <%= name %>
-    </li>
+  <%= for {pickup, dropoff,status, distance} <- @rejbooking do %>
+    <ul>
+      <li>
+        <strong>Pickup address:</strong>
+        <%= pickup %>
+      </li>
 
-    <li>
-      <strong>Total cost</strong>
-      € <%= price*distance %>
-    </li>
+      <li>
+        <strong>Dropoff address:</strong>
+        <%= dropoff %>
+      </li>
 
-    <li>
-      <strong>Price per km</strong>
-      € <%= price %>
-    </li>
-    <li>
-      <strong>Total distance</strong>
-      <%= distance %> km
-    </li>
-  </ul>
+      <li>
+        <strong>Status:</strong>
+        <%= status %>
+      </li>
+      <li>
+        <strong>Total distance</strong>
+        <%= distance %> km
+      </li>
+    </ul>
+  <% end %>
+  <% else %>
+  <%= for {pickup, dropoff, price, name, status, distance} <- @accbooking do %>
+    <ul>
+      <li>
+        <strong>Pickup address:</strong>
+        <%= pickup %>
+      </li>
+
+      <li>
+        <strong>Dropoff address:</strong>
+        <%= dropoff %>
+      </li>
+
+      <li>
+        <strong>Status:</strong>
+        <%= status %>
+      </li>
+
+      <li>
+        <strong>Assigned driver:</strong>
+        <%= name %>
+      </li>
+
+      <li>
+        <strong>Total cost</strong>
+        € <%= price*distance %>
+      </li>
+
+      <li>
+        <strong>Price per km</strong>
+        € <%= price %>
+      </li>
+      <li>
+        <strong>Total distance</strong>
+        <%= distance %> km
+      </li>
+    </ul>
+  <% end %>
 <% end %>
-<% end %>
-
-
-
-
+<%end %>
 <span><%= link "Back", to: Routes.booking_path(@conn, :index) %></span>

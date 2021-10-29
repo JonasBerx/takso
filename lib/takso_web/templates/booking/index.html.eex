@@ -18,7 +18,7 @@
         <td><%= distance %></td>
         <td><%= allocation %></td>
         <td class="text-right">
-        <span><%= link "Complete", to: Routes.booking_path(@conn, :update, id), method: :put, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
+        <span><%= link "Show", to: Routes.booking_path(@conn, :show, id), class: "btn btn-default btn-xs" %></span>
         </td>
       </tr>
   <% end %>
@@ -42,8 +42,7 @@
         <td><%= booking.status %></td>
         <td class="text-right">
         <span><%= link "Show", to: Routes.booking_path(@conn, :show, booking), class: "btn btn-default btn-xs" %></span>
-          <span><%= link "Delete", to: Routes.booking_path(@conn, :delete, booking), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
-        </td>
+         </td>
       </tr>
   <% end %>
     </tbody>
