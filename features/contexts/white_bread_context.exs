@@ -18,7 +18,7 @@ defmodule WhiteBreadContext do
 
   scenario_finalize(fn _status, _state ->
     Ecto.Adapters.SQL.Sandbox.checkin(Takso.Repo)
-    # Hound.end_session()
+    Hound.end_session()
   end)
 
   given_(~r/^Jake logs into the system using his credentials$/, fn state, %{table_data: table} ->
