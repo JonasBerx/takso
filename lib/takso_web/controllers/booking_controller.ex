@@ -8,7 +8,7 @@ defmodule TaksoWeb.BookingController do
   alias Ecto.{Changeset, Multi}
   alias Takso.{Repo, Sales.Booking}
 
-  def index(conn, _params) do
+  def display_booking_list(conn, _params) do
     user = conn.assigns.current_user
 
     case user do
@@ -48,7 +48,7 @@ defmodule TaksoWeb.BookingController do
     end
   end
 
-  def update(conn, %{"id" => id}) do
+  def complete_ride(conn, %{"id" => id}) do
     # TODO : Need to pass through a form.
     # Check if user doing the completing of the ride is the assigned driver.
     booking = Repo.get!(Booking, id)
@@ -87,7 +87,7 @@ defmodule TaksoWeb.BookingController do
 
     conn
     |> put_flash(:info, "Ride completed.")
-    |> redirect(to: Routes.booking_path(conn, :index))
+    |> redirect(to: Routes.booking_path(conn, :display_booking_list))
   end
 
   def new(conn, _params) do
@@ -95,7 +95,7 @@ defmodule TaksoWeb.BookingController do
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, %{"booking" => booking_params}) do
+  def create_booking(conn, %{"booking" => booking_params}) do
     user = conn.assigns.current_user
 
     case user do
@@ -184,7 +184,7 @@ defmodule TaksoWeb.BookingController do
                       " seats.\nThe total price for the ride is €" <>
                       Float.to_string(total_price)
                   )
-                  |> redirect(to: Routes.booking_path(conn, :index))
+                  |> redirect(to: Routes.booking_path(conn, :display_booking_list))
 
                 _ ->
                   Multi.new()
@@ -197,7 +197,7 @@ defmodule TaksoWeb.BookingController do
 
                   conn
                   |> put_flash(:info, "At present, there is no taxi available!")
-                  |> redirect(to: Routes.booking_path(conn, :index))
+                  |> redirect(to: Routes.booking_path(conn, :display_booking_list))
               end
             end
           end
@@ -234,7 +234,7 @@ defmodule TaksoWeb.BookingController do
   # inner join taxis t on a.taxi_id = t.id
   # inner join users u on u.id = t.driver_id
 
-  def show(conn, %{"id" => id}) do
+  def display_booking_info(conn, %{"id" => id}) do
     user = conn.assigns.current_user
 
     case user.role do

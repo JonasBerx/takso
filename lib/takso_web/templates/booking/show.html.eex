@@ -23,7 +23,7 @@
     </ul>
 
       <%= if status == "allocated" do %>
-            <span><%= link "Complete?", to: Routes.booking_path(@conn, :update, id), method: :put, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
+            <span><%= link "Complete?", to: Routes.booking_path(@conn, :complete_ride, id), method: :put, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %></span>
       <% end %>
       <%end %>
 <% else %>
@@ -93,4 +93,4 @@
   <% end %>
 <% end %>
 <%end %>
-<span><%= link "Back", to: Routes.booking_path(@conn, :index) %></span>
+<span><%= link "Back", to: Routes.booking_path(@conn, :display_booking_list) %></span>

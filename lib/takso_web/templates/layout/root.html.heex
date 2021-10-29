@@ -14,12 +14,12 @@
         <ol class="breadcrumb pull-right">
 <%= if @conn.assigns.current_user && @conn.assigns.current_user.role === "customer" do %>
             <li>Hello <%= @conn.assigns.current_user.name %>, Enjoy your ride.</li>
-            <li><%= link "My bookings", to: Routes.booking_path(@conn, :index) %></li>
+            <li><%= link "My bookings", to: Routes.booking_path(@conn, :display_booking_list) %></li>
             <li><%= link "Log out", to: Routes.session_path(@conn, :delete, @conn.assigns.current_user), method: "delete" %></li>
 <% end %>
 <%= if @conn.assigns.current_user && @conn.assigns.current_user.role === "driver" do %>
             <li>Hello <%= @conn.assigns.current_user.name %>, Drive safe!</li>
-            <li><%= link "My rides", to: Routes.booking_path(@conn, :index) %></li>
+            <li><%= link "My rides", to: Routes.booking_path(@conn, :display_booking_list) %></li>
             <li><%= link "Log out", to: Routes.session_path(@conn, :delete, @conn.assigns.current_user), method: "delete" %></li>
 <% end %>
 <%= if !@conn.assigns.current_user do %>

@@ -18,7 +18,7 @@
         <td><%= distance %></td>
         <td><%= allocation %></td>
         <td class="text-right">
-        <span><%= link "Show", to: Routes.booking_path(@conn, :show, id), class: "btn btn-default btn-xs" %></span>
+        <span><%= link "Show", to: Routes.booking_path(@conn, :display_booking_info, id), class: "btn btn-default btn-xs" %></span>
         </td>
       </tr>
   <% end %>
@@ -41,7 +41,7 @@
         <td><%= booking.dropoff_address %></td>
         <td><%= booking.status %></td>
         <td class="text-right">
-        <span><%= link "Show", to: Routes.booking_path(@conn, :show, booking), class: "btn btn-default btn-xs" %></span>
+        <span><%= link "Show", to: Routes.booking_path(@conn, :display_booking_info, booking), class: "btn btn-default btn-xs" %></span>
          </td>
       </tr>
   <% end %>
