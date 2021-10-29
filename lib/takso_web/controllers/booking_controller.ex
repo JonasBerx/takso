@@ -51,6 +51,8 @@ defmodule TaksoWeb.BookingController do
   def update(conn, %{"id" => id}) do
     # TODO : Need to pass through a form.
     # Check if user doing the completing of the ride is the assigned driver.
+    booking = Repo.get!(Booking, id)
+
     allocation =
       from b in Booking,
         join: a in Allocation,
@@ -77,7 +79,9 @@ defmodule TaksoWeb.BookingController do
     )
     |> Multi.update(
       :taxi,
-      Taxi.changeset(t, %{}) |> Changeset.put_change(:status, "available")
+      Taxi.changeset(t, %{})
+      |> Changeset.put_change(:status, "available")
+      |> Changeset.put_change(:location, booking.dropoff_address)
     )
     |> Repo.transaction()
 
