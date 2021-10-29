@@ -91,7 +91,7 @@ defmodule TaksoWeb.BookingController do
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, booking_params) do
+  def create(conn, %{"booking" => booking_params}) do
     user = conn.assigns.current_user
 
     case user do
@@ -112,10 +112,14 @@ defmodule TaksoWeb.BookingController do
             mapped
           )
 
-        v = booking_params["distance"]
-        changeset = Booking.changeset(booking_struct, %{})
+        {v, _} = Float.parse(booking_params["distance"])
+        IO.puts(v)
 
-        if Map.get(mapped, :pickup_address) === "" || Map.get(mapped, :dropoff_address) === "" do
+        changeset =
+          Booking.changeset(booking_struct, %{})
+          |> Changeset.put_change(:distance, v)
+
+        if booking_params["pickup_address"] === "" || booking_params["dropoff_address"] === "" do
           conn
           |> put_flash(:error, "Pickup and dropoff address can't be empty")
           |> render("new.html", changeset: changeset)
@@ -125,7 +129,7 @@ defmodule TaksoWeb.BookingController do
             |> put_flash(:error, "Distance cannot be negative or zero")
             |> render("new.html", changeset: changeset)
           else
-            if Map.get(mapped, :pickup_address) === Map.get(mapped, :dropoff_address) do
+            if booking_params["pickup_address"] === Map.get(mapped, "dropoff_address") do
               conn
               |> put_flash(:error, "Pickup and dropoff address can't be the same")
               |> render("new.html", changeset: changeset)
@@ -163,6 +167,7 @@ defmodule TaksoWeb.BookingController do
                   |> Repo.transaction()
 
                   get_driver = Repo.get!(User, taxi.driver_id)
+                  total_price = v * taxi.price
 
                   conn
                   |> put_flash(
@@ -174,17 +179,12 @@ defmodule TaksoWeb.BookingController do
                       ")\nThe taxi has " <>
                       Integer.to_string(taxi.capacity) <>
                       " seats.\nThe total price for the ride is €" <>
-                      Float.to_string(v * taxi.price)
+                      Float.to_string(total_price)
                   )
                   |> redirect(to: Routes.booking_path(conn, :index))
 
                 _ ->
                   Multi.new()
-                  # |> Multi.insert(
-                  #   :allocation,
-                  #   Allocation.changeset(%Allocation{}, %{})
-                  #   |> Changeset.put_change(:booking_id, booking.id)
-                  # )
                   |> Multi.update(
                     :booking,
                     Booking.changeset(booking, %{})

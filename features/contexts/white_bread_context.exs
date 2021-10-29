@@ -20,7 +20,7 @@ defmodule WhiteBreadContext do
   end
 
   given_ ~r/^John logs into the system using his credentials$/, fn state ->
-    user = %User{name: "John Johnson", email: "john123@ut.ee", password: "1234", role: "costumer", age: 44, id: 1}
+    user = %User{name: "Jake Blake", email: "jake@ut.ee", password: "1234", role: "customer", age: 44, id: 1}
     Repo.insert!(user)
     navigate_to "/sessions/new"
     fill_field({:id, "email"}, user.email)
@@ -40,15 +40,15 @@ defmodule WhiteBreadContext do
   end
 
   and_ ~r/^the following taxis are on duty$/, fn state, %{table_data: table} ->
-    #table
-    #|> Enum.map(fn taxi -> Taxi.changeset(%Taxi{}, taxi) end)
-    #|> Enum.each(fn changeset -> Repo.insert!(changeset) end)
+    table
+    |> Enum.map(fn taxi -> Taxi.changeset(%Taxi{}, taxi) end)
+    |> Enum.each(fn changeset -> Repo.insert!(changeset) end)
     {:ok, state}
   end
 
-  and_ ~r/^I want to go from "(?<pickup_address>[^"]+)" to "(?<dropoff_address>[^"]+)"$/,
+  and_ ~r/^I want to go from "(?<pickup_address>[^"]+)" to "(?<dropoff_address>[^"]+)" with distance 5.0$/,
   fn state, %{pickup_address: pickup_address,dropoff_address: dropoff_address} ->
-    {:ok, state|> Map.put(:pickup_address, pickup_address) |> Map.put(:dropoff_address, dropoff_address)}
+    {:ok, state|> Map.put(:pickup_address, pickup_address) |> Map.put(:dropoff_address, dropoff_address) |> Map.put(:distance, 5.0)}
   end
 
   and_ ~r/^I open the STRS's web page$/, fn state ->
@@ -59,6 +59,8 @@ defmodule WhiteBreadContext do
   and_ ~r/^I enter the booking information$/, fn state ->
     fill_field({:id, "pickup_address"}, state[:pickup_address])
     fill_field({:id, "dropoff_address"}, state[:dropoff_address])
+    fill_field({:id, "distance"}, state[:distance])
+
     {:ok, state}
   end
 

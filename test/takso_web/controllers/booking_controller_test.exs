@@ -126,23 +126,31 @@ defmodule Takso.BookingControllerTest do
 
       path =
         post conn, "/bookings", %{
-          pickup_address: "Liivi 2",
-          dropoff_address: "Lõunakeskus",
-          status: "",
-          distance: 5.0
+          booking: [
+            pickup_address: "Liivi 2",
+            dropoff_address: "Lõunakeskus",
+            status: "",
+            distance: 5.0
+          ]
         }
 
       path = get(path, redirected_to(path))
       assert html_response(path, 200) =~ ~r/Your taxi driver juhan will arrive soon./
     end
 
+    # test "no taxi drivers are available, show rejection message" %{conn: conn, taxi: taxi_juhan} do
+    #   IO.puts(taxi_juhan)
+    # end
+
     test "with empty pickup address, show rejection message", %{conn: conn} do
       path =
         post conn, "/bookings", %{
-          pickup_address: "",
-          dropoff_address: "Lõunakeskus",
-          status: "",
-          distance: 5.0
+          booking: [
+            pickup_address: "",
+            dropoff_address: "Lõunakeskus",
+            status: "",
+            distance: 5.0
+          ]
         }
 
       assert html_response(path, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
