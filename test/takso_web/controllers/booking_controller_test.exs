@@ -55,14 +55,14 @@ defmodule Takso.BookingControllerTest do
 
     test "with valid parameters, books a taxi", %{conn: conn} do
       conn =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "Liivi 2",
             dropoff_address: "Lõunakeskus",
             status: "",
             distance: "5.0"
           ]
-        }
+        })
 
       conn = get(conn, redirected_to(conn))
       assert html_response(conn, 200) =~ ~r/Your taxi driver juhan will arrive soon./
@@ -92,14 +92,14 @@ defmodule Takso.BookingControllerTest do
         |> Repo.insert!()
 
       path =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "Liivi 2",
             dropoff_address: "Lõunakeskus",
             status: "",
             distance: "5.0"
           ]
-        }
+        })
 
       path = get(path, redirected_to(path))
       assert html_response(path, 200) =~ ~r/The total price for the ride is €5./
@@ -129,14 +129,14 @@ defmodule Takso.BookingControllerTest do
         |> Repo.insert!()
 
       conn =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "Liivi 2",
             dropoff_address: "Lõunakeskus",
             status: "",
             distance: "5.0"
           ]
-        }
+        })
 
       conn = get(conn, redirected_to(conn))
       assert html_response(conn, 200) =~ ~r/Your taxi driver juhan will arrive soon./
@@ -148,42 +148,42 @@ defmodule Takso.BookingControllerTest do
 
     test "with empty pickup address, show rejection message", %{conn: conn} do
       conn =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "",
             dropoff_address: "Lõunakeskus",
             status: "",
             distance: "5.0"
           ]
-        }
+        })
 
       assert html_response(conn, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
     end
 
     test "with empty dropoff address, show rejection message", %{conn: conn} do
       conn =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "Lõunakeskus",
             dropoff_address: "",
             status: "",
             distance: "5.0"
           ]
-        }
+        })
 
       assert html_response(conn, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
     end
 
     test "with negative distance, show rejection message", %{conn: conn} do
       conn =
-        post conn, "/bookings", %{
+        post(conn, "/bookings", %{
           booking: [
             pickup_address: "Liivi 2",
             dropoff_address: "Lõunakeskus",
             status: "",
             distance: "-5.0"
           ]
-        }
+        })
 
       assert html_response(conn, 200) =~ ~r/Distance cannot be negative./
     end
