@@ -12,7 +12,7 @@ Feature: Taxi booking
       | john123@takso.ee | 1234     | John Joe  | 44  | driver | 2  |
       | john321@takso.ee | 1234     | John John | 43  | driver | 3  |
     And the following taxis are on duty
-      | driver_id | location      | status    | price | completed_rides | capacity |
+      | id | location      | status    | price | completed_rides | capacity |
       | 2         | Juhan Liivi 2 | available | 6.0   | 0               | 4        |
       | 3         | Kalevi 4      | busy      | 13.0  | 2               | 2        |
     And I want to go from "Street" to "Road" with distance 5.0
