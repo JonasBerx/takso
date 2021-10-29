@@ -3,12 +3,12 @@ defmodule Takso.Sales.Taxi do
   import Ecto.Changeset
 
   schema "taxis" do
-    field :location, :string
-    field :status, :string
-    field :completed_rides, :integer
-    field :price, :float
-    field :capacity, :integer
-    belongs_to :driver, Takso.Accounts.User
+    field(:location, :string)
+    field(:status, :string)
+    field(:completed_rides, :integer)
+    field(:price, :float)
+    field(:capacity, :integer)
+    belongs_to(:driver, Takso.Accounts.User)
     # timestamps()
   end
 

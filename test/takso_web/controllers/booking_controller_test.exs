@@ -54,16 +54,18 @@ defmodule Takso.BookingControllerTest do
     end
 
     test "with valid parameters, books a taxi", %{conn: conn} do
-      path =
+      conn =
         post conn, "/bookings", %{
-          pickup_address: "Liivi 2",
-          dropoff_address: "Lõunakeskus",
-          status: "",
-          distance: 5.0
+          booking: [
+            pickup_address: "Liivi 2",
+            dropoff_address: "Lõunakeskus",
+            status: "",
+            distance: "5.0"
+          ]
         }
 
-      path = get(path, redirected_to(path))
-      assert html_response(path, 200) =~ ~r/Your taxi driver juhan will arrive soon./
+      conn = get(conn, redirected_to(conn))
+      assert html_response(conn, 200) =~ ~r/Your taxi driver juhan will arrive soon./
     end
 
     test "with valid parameters, show confirmation message and the cheapest taxi", %{conn: conn} do
@@ -91,10 +93,12 @@ defmodule Takso.BookingControllerTest do
 
       path =
         post conn, "/bookings", %{
-          pickup_address: "Liivi 2",
-          dropoff_address: "Lõunakeskus",
-          status: "",
-          distance: 5.0
+          booking: [
+            pickup_address: "Liivi 2",
+            dropoff_address: "Lõunakeskus",
+            status: "",
+            distance: "5.0"
+          ]
         }
 
       path = get(path, redirected_to(path))
@@ -124,18 +128,18 @@ defmodule Takso.BookingControllerTest do
         }
         |> Repo.insert!()
 
-      path =
+      conn =
         post conn, "/bookings", %{
           booking: [
             pickup_address: "Liivi 2",
             dropoff_address: "Lõunakeskus",
             status: "",
-            distance: 5.0
+            distance: "5.0"
           ]
         }
 
-      path = get(path, redirected_to(path))
-      assert html_response(path, 200) =~ ~r/Your taxi driver juhan will arrive soon./
+      conn = get(conn, redirected_to(conn))
+      assert html_response(conn, 200) =~ ~r/Your taxi driver juhan will arrive soon./
     end
 
     # test "no taxi drivers are available, show rejection message" %{conn: conn, taxi: taxi_juhan} do
@@ -143,41 +147,45 @@ defmodule Takso.BookingControllerTest do
     # end
 
     test "with empty pickup address, show rejection message", %{conn: conn} do
-      path =
+      conn =
         post conn, "/bookings", %{
           booking: [
             pickup_address: "",
             dropoff_address: "Lõunakeskus",
             status: "",
-            distance: 5.0
+            distance: "5.0"
           ]
         }
 
-      assert html_response(path, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
+      assert html_response(conn, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
     end
 
     test "with empty dropoff address, show rejection message", %{conn: conn} do
-      path =
+      conn =
         post conn, "/bookings", %{
-          pickup_address: "Lõunakeskus",
-          dropoff_address: "",
-          status: "",
-          distance: 5.0
+          booking: [
+            pickup_address: "Lõunakeskus",
+            dropoff_address: "",
+            status: "",
+            distance: "5.0"
+          ]
         }
 
-      assert html_response(path, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
+      assert html_response(conn, 200) =~ ~r/Pickup and dropoff address can&#39;t be empty./
     end
 
     test "with negative distance, show rejection message", %{conn: conn} do
-      path =
+      conn =
         post conn, "/bookings", %{
-          pickup_address: "Liivi 2",
-          dropoff_address: "Lõunakeskus",
-          status: "",
-          distance: -5.0
+          booking: [
+            pickup_address: "Liivi 2",
+            dropoff_address: "Lõunakeskus",
+            status: "",
+            distance: "-5.0"
+          ]
         }
 
-      assert html_response(path, 200) =~ ~r/Distance cannot be negative./
+      assert html_response(conn, 200) =~ ~r/Distance cannot be negative./
     end
   end
 

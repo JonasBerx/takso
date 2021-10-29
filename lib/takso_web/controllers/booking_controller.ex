@@ -113,7 +113,6 @@ defmodule TaksoWeb.BookingController do
           )
 
         {v, _} = Float.parse(booking_params["distance"])
-        IO.puts(v)
 
         changeset =
           Booking.changeset(booking_struct, %{})
@@ -166,6 +165,9 @@ defmodule TaksoWeb.BookingController do
                   )
                   |> Repo.transaction()
 
+                  IO.puts("test")
+                  IO.puts(taxi.driver_id)
+                  IO.puts("test")
                   get_driver = Repo.get!(User, taxi.driver_id)
                   total_price = v * taxi.price
 

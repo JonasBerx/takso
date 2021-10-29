@@ -3,9 +3,9 @@ defmodule Takso.Sales.Allocation do
   import Ecto.Changeset
 
   schema "allocations" do
-    field :status, :string
-    belongs_to :booking, Takso.Sales.Booking
-    belongs_to :taxi, Takso.Sales.Taxi
+    field(:status, :string)
+    belongs_to(:booking, Takso.Sales.Booking)
+    belongs_to(:taxi, Takso.Sales.Taxi)
 
     timestamps()
   end

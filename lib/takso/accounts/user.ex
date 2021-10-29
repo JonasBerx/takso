@@ -3,13 +3,13 @@ defmodule Takso.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
-    field :name, :string
+    field(:name, :string)
     # Email is used as username
-    field :email, :string
-    field :password, :string
-    field :age, :integer
-    field :role, :string
-    has_many :bookings, Takso.Sales.Booking
+    field(:email, :string)
+    field(:password, :string)
+    field(:age, :integer)
+    field(:role, :string)
+    has_many(:bookings, Takso.Sales.Booking)
     timestamps()
   end
 

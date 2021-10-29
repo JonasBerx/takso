@@ -3,11 +3,11 @@ defmodule Takso.Sales.Booking do
   import Ecto.Changeset
 
   schema "bookings" do
-    field :pickup_address, :string
-    field :dropoff_address, :string
-    field :status, :string, default: "open"
-    field :distance, :float, default: 0.1
-    belongs_to :user, Takso.Accounts.User
+    field(:pickup_address, :string)
+    field(:dropoff_address, :string)
+    field(:status, :string, default: "open")
+    field(:distance, :float, default: 0.1)
+    belongs_to(:user, Takso.Accounts.User)
     timestamps()
   end
 
